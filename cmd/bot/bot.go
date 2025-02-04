@@ -8,6 +8,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ludovicalarcon/aza-discord-news-sorter/cmd/todoist"
+	"github.com/ludovicalarcon/aza-discord-news-sorter/internal/helpers"
 )
 
 const (
@@ -24,18 +25,35 @@ type Bot struct {
 	Todo todoist.Todoist
 }
 
+func (b *Bot) sendErrorMessageToChannel(session *discordgo.Session, channelId, errMessage string) {
+	log.Println("error:", errMessage)
+	session.ChannelMessageSendComplex(channelId, &discordgo.MessageSend{
+		Content: errMessage,
+		Flags:   discordgo.MessageFlagsEphemeral,
+	})
+}
+
 func (b *Bot) messageReactionAdd(session *discordgo.Session, reaction *discordgo.MessageReactionAdd) {
 	emoji := reaction.Emoji.Name
 	channelId := reaction.ChannelID
 
-	log.Println(emoji)
-	err := b.Todo.CreateTodo("This is a test", emoji)
-	if err != nil {
-		log.Println("error:", err)
-		session.ChannelMessageSendComplex(channelId, &discordgo.MessageSend{
-			Content: err.Error(),
-			Flags:   discordgo.MessageFlagsEphemeral,
-		})
+	if emoji == "😍" || emoji == "👌" || emoji == "👍" || emoji == "✅" {
+		message, err := session.ChannelMessage(channelId, reaction.MessageID)
+		if err != nil {
+			log.Println("error on retrieve message:", err)
+		}
+		title, err := helpers.GetTitleFromUrl(message.Content)
+		fmt.Println(title)
+		if err != nil {
+			b.sendErrorMessageToChannel(session, channelId, err.Error())
+			return
+		}
+
+		err = b.Todo.CreateTodo(title, message.Content)
+		if err != nil {
+			b.sendErrorMessageToChannel(session, channelId, err.Error())
+			return
+		}
 	}
 }
 

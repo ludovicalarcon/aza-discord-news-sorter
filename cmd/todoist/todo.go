@@ -60,6 +60,15 @@ func doHttpRequest(request *http.Request, client *http.Client, apiKey string) (r
 	request.Header.Set("Content-Type", "application/json")
 
 	response, err = client.Do(request)
+	if err != nil {
+		return
+	}
+
+	err = verifyErrorInAnswer(response)
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -91,12 +100,7 @@ func (t *Todoist) getProjects() (projects []Project, err error) {
 	if err != nil {
 		return
 	}
-
 	defer response.Body.Close()
-	err = verifyErrorInAnswer(response)
-	if err != nil {
-		return
-	}
 
 	responseData, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -132,9 +136,7 @@ func (t *Todoist) CreateTodo(title, description string) (err error) {
 	if err != nil {
 		return
 	}
-
 	defer response.Body.Close()
-	err = verifyErrorInAnswer(response)
 
 	return
 }
