@@ -171,4 +171,36 @@ func TestTodoist(t *testing.T) {
 
 		assertEqualString(t, err.Error(), fmt.Sprintf("%s: %s", ErrHttpRequestDefault.Error(), "oups\n"))
 	})
+
+	t.Run("It should return error when apiKey is not set", func(t *testing.T) {
+		title := "foobar"
+		todoist := Todoist{}
+		err := todoist.CreateTodo(title, title)
+		assertError(t, err, ErrNotInitialized)
+	})
+
+	t.Run("It should return error when todo already exist", func(t *testing.T) {
+		title := "foobar"
+		todos := []Task{
+			{
+				ProjectId:   &id,
+				Labels:      []string{title},
+				Content:     &title,
+				Description: &title,
+			},
+		}
+
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			data, err := json.Marshal(todos)
+			if err != nil {
+				t.Fatal("can't marshal json for testserver answer")
+			}
+			rw.Write(data)
+		}))
+		defer server.Close()
+
+		todoist := Todoist{Client: server.Client(), baseUrl: server.URL, apiKey: "XXX"}
+		err := todoist.CreateTodo(title, title)
+		assertError(t, err, ErrAlreadyExist)
+	})
 }

@@ -42,6 +42,7 @@ func (b *Bot) messageReactionAdd(session *discordgo.Session, reaction *discordgo
 		if err != nil {
 			log.Println("error on retrieve message:", err)
 		}
+		// TODO: use go routine
 		title, err := helpers.GetTitleFromUrl(message.Content)
 		fmt.Println(title)
 		if err != nil {
@@ -51,8 +52,10 @@ func (b *Bot) messageReactionAdd(session *discordgo.Session, reaction *discordgo
 
 		err = b.Todo.CreateTodo(title, message.Content)
 		if err != nil {
-			b.sendErrorMessageToChannel(session, channelId, err.Error())
-			return
+			if err != todoist.ErrAlreadyExist {
+				b.sendErrorMessageToChannel(session, channelId, err.Error())
+				return
+			}
 		}
 	}
 }

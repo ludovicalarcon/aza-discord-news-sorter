@@ -4,3 +4,7 @@ tasks:
   test:
     cmds:
       - go test -v ./...
+
+  cover:
+    cmds:
+      - go test -cover ./...

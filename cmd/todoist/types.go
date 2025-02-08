@@ -40,6 +40,7 @@ type Task struct {
 	CreatorId    *string   `json:"creator_id"`
 	AssigneeId   *string   `json:"assignee_id"`
 	AssignerId   *string   `json:"assigner_id"`
+	DueDate      *string   `json:"due_date"`
 	Duration     *Duration `json:"duration"`
 }
 
