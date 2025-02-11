@@ -137,26 +137,26 @@ func (t *Todoist) getTodosByLabel(label string) (todos []Task, err error) {
 	return
 }
 
-func (t *Todoist) defineDueDate() (dueDate string, err error) {
-	currentDate := time.Now().Format("2006-01-02")
+func (t *Todoist) defineDueDate(currentDate time.Time) (dueDateFormated string, err error) {
+	dueDateFormated = currentDate.Format("2006-01-02")
 
-	for i := 1; i < MAX_DAYS_TO_LOOK_UP; i++ {
-		todos, err := t.getTodosByLabel(currentDate)
+	for i := 1; i <= MAX_DAYS_TO_LOOK_UP; i++ {
+		todos, err := t.getTodosByLabel(dueDateFormated)
 		if err != nil {
 			return "", err
 		}
 		if len(todos) < MAX_TODO_PER_DAY {
-			return currentDate, err
+			return dueDateFormated, err
 		}
-		currentDate = time.Now().AddDate(0, 0, i).Format("2006-01-02")
+		dueDateFormated = currentDate.AddDate(0, 0, i).Format("2006-01-02")
 	}
 
-	dueDate = currentDate
 	return
 }
 
-func (t *Todoist) createTodoDTO(title, titleLabel, description string) (todo Task, err error) {
-	dueDate, err := t.defineDueDate()
+func (t *Todoist) createTodoDTO(title, description string) (todo Task, err error) {
+	dueDate, err := t.defineDueDate(time.Now())
+	titleLabel := strings.ReplaceAll(strings.Trim(title, " "), " ", "-")
 	if err != nil {
 		return
 	}
@@ -195,8 +195,7 @@ func (t *Todoist) CreateTodo(title, description string) (err error) {
 		return
 	}
 
-	titleLabel := strings.ReplaceAll(strings.Trim(title, " "), " ", "-")
-	todo, err := t.createTodoDTO(title, titleLabel, description)
+	todo, err := t.createTodoDTO(title, description)
 	if err != nil {
 		return
 	}
