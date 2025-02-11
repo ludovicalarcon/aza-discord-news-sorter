@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -34,6 +35,29 @@ func TestBot(t *testing.T) {
 
 		if err == nil {
 			t.Fatal("didn't get an error but wanted one")
+		}
+	})
+
+	t.Run("It should not create a todo from discord message when it is not a link", func(t *testing.T) {
+		message := "foobar"
+		emoji := "👌"
+		wantedErrorMessage := fmt.Sprintf("%s for %s", ErrCouldNotRetrieveTitle.Error(), message)
+		err := bot.processMessage(message, emoji)
+
+		if err == nil {
+			t.Fatal("didn't get an error but wanted one")
+		}
+		if err.Error() != wantedErrorMessage {
+			t.Fatalf("got %s but wanted %s", err.Error(), wantedErrorMessage)
+		}
+	})
+
+	t.Run("It should do nothing on unknown emoji", func(t *testing.T) {
+		message := "foobar"
+		emoji := "😂"
+		err := bot.processMessage(message, emoji)
+		if err != nil {
+			t.Fatalf("got error [%s] but did not want one", err)
 		}
 	})
 }

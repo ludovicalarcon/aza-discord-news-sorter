@@ -14,3 +14,11 @@ func TestGetTitleFromUrl(t *testing.T) {
 		t.Fatalf("got %s, want %s", title, want)
 	}
 }
+
+func TestGetTitleFromUrl_Error(t *testing.T) {
+	_, err := GetTitleFromUrl("foobar")
+
+	if err == nil {
+		t.Fatal("did not got an error but wanted one")
+	}
+}
